@@ -4,7 +4,7 @@ metadata:
   name: python-app-deployment
   namespace: webapps
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: python-app
@@ -15,9 +15,21 @@ spec:
     spec:
       containers:
       - name: python-app
-        image: adijaiswal/python-app:latest
+        image: your-dockerhub-username/python-app:latest
         ports:
         - containerPort: 8000
+        env:
+        - name: MYSQL_HOST
+          value: "mysql-db"
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_USER
+          value: "root"
+        - name: MYSQL_PASSWORD
+          value: "password"
+        - name: MYSQL_DB
+          value: "testdb"
+
 ---
 apiVersion: v1
 kind: Service
@@ -29,6 +41,6 @@ spec:
     app: python-app
   ports:
     - protocol: TCP
-      port: 80
+      port: 8000
       targetPort: 8000
   type: LoadBalancer
