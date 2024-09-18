@@ -24,15 +24,9 @@ bash
 
 Once the application is deployed:
 
-    Check the status of your deployment:
-
-    bash
-
 kubectl get deployments -n webapps
 
 Check the service and get the external IP:
-
-bash
 
 kubectl get svc -n webapps
 
