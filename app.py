@@ -1,46 +1,42 @@
 import mysql.connector
-from mysql.connector import Error
+from flask import Flask, jsonify
 
-def create_connection():
+app = Flask(__name__)
+
+# MySQL Connection Configuration
+config = {
+    'user': 'root',
+    'password': 'password',  # Change as per your MySQL setup
+    'host': 'mysql-db',  # The hostname or IP address of the MySQL service
+    'database': 'testdb',
+}
+
+@app.route('/')
+def insert_and_fetch_data():
     try:
-        connection = mysql.connector.connect(
-            host='mysql',  # Since MySQL runs in Docker, use the container name as host
-            user='root',
-            password='rootpassword',
-            database='test_db'
-        )
-        if connection.is_connected():
-            print("Connected to MySQL database")
-            return connection
-    except Error as e:
-        print(f"Error: '{e}'")
-        return None
+        # Establish connection to MySQL
+        connection = mysql.connector.connect(**config)
+        cursor = connection.cursor()
 
-def create_table(connection):
-    cursor = connection.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), age INT)")
-    connection.commit()
+        # Create table if not exists
+        cursor.execute("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255))")
 
-def insert_data(connection, name, age):
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO users (name, age) VALUES (%s, %s)", (name, age))
-    connection.commit()
+        # Insert Data
+        cursor.execute("INSERT INTO users (name) VALUES ('Murugan')")
+        connection.commit()
 
-def select_data(connection):
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users")
-    rows = cursor.fetchall()
-    for row in rows:
-        print(row)
+        # Fetch Data
+        cursor.execute("SELECT * FROM users")
+        result = cursor.fetchall()
 
-def main():
-    connection = create_connection()
-    if connection:
-        create_table(connection)
-        insert_data(connection, "John", 30)
-        insert_data(connection, "Jane", 25)
-        select_data(connection)
+        return jsonify(result)
+
+    except mysql.connector.Error as err:
+        return f"Error: {err}"
+
+    finally:
+        cursor.close()
         connection.close()
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
