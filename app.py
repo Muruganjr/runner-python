@@ -1,42 +1,66 @@
 import mysql.connector
-from flask import Flask, jsonify
 
-app = Flask(__name__)
-
-# MySQL Connection Configuration
+# Define the connection parameters
 config = {
     'user': 'root',
-    'password': 'password',  # Change as per your MySQL setup
-    'host': 'mysql-db',  # The hostname or IP address of the MySQL service
-    'database': 'testdb',
+    'password': 'password',  # MySQL root password
+    'host': 'localhost',     # Host is 'localhost' since MySQL runs on the same instance
+    'port': '3306',          # MySQL default port
+    'database': 'testdb'     # The database created during the Docker run
 }
 
-@app.route('/')
-def insert_and_fetch_data():
+def insert_data(name):
     try:
-        # Establish connection to MySQL
+        # Establish the MySQL connection
         connection = mysql.connector.connect(**config)
         cursor = connection.cursor()
 
-        # Create table if not exists
-        cursor.execute("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255))")
+        # Create table if it doesn't exist
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255)
+            )
+        """)
 
-        # Insert Data
-        cursor.execute("INSERT INTO users (name) VALUES ('Murugan')")
+        # Insert data into the table
+        insert_query = "INSERT INTO users (name) VALUES (%s)"
+        cursor.execute(insert_query, (name,))
         connection.commit()
-
-        # Fetch Data
-        cursor.execute("SELECT * FROM users")
-        result = cursor.fetchall()
-
-        return jsonify(result)
+        print(f"Data inserted: {name}")
 
     except mysql.connector.Error as err:
-        return f"Error: {err}"
+        print(f"Error: {err}")
+    
+    finally:
+        cursor.close()
+        connection.close()
 
+def fetch_data():
+    try:
+        # Establish the MySQL connection
+        connection = mysql.connector.connect(**config)
+        cursor = connection.cursor()
+
+        # Fetch data from the table
+        cursor.execute("SELECT * FROM users")
+        rows = cursor.fetchall()
+
+        # Print the fetched data
+        for row in rows:
+            print(row)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    
     finally:
         cursor.close()
         connection.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    # Insert sample data
+    insert_data('Murugan')
+
+    # Fetch and display the data
+    print("Fetched Data:")
+    fetch_data()
