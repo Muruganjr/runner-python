@@ -41,3 +41,13 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push muruganjr/mysqlapp:latest
+
+      - name: Set up Kubernetes CLI (kubectl)
+        uses: tale/kubectl-action@v1
+        with:
+          base64-kube-config: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f deployment-service.yaml -n webapps
+          kubectl get svc -n webapps
