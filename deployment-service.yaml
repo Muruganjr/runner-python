@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: python-app
-        image: your-dockerhub-username/python-app:latest
+        image: muruganjr/mysqlapp:latest
         ports:
         - containerPort: 8000
         env:
